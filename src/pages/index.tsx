@@ -5,6 +5,8 @@ import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { api, type RouterOutputs } from "~/utils/api";
 import Image from "next/image";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -17,6 +19,15 @@ const CreatePostWizard = () => {
     onSuccess: () => {
       setInput("");
       void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to post! Please try again later.")
+      }
     }
   });
 
@@ -65,9 +76,11 @@ const PostView = (props: PostWithUser) => {
       />
       <div className="flex flex-col">
         <div className="flex text-slate-300">
-          <span>{`@${author.username}`}</span>
+          <Link href={`/@${author.username}`}><span>{`@${author.username}`}</span></Link>
         </div>
-        <span>{post.content}</span>
+        <Link href={`/post/${post.id}`}>
+          <span>{post.content}</span>
+        </Link>
       </div>
     </div>
   );
